@@ -1,0 +1,36 @@
+<?php
+    $hoursLeft = $auction->ends_at->diffInHours(now(), absolute: true);
+    $urgent = $hoursLeft < 6 && $auction->isActive();
+?>
+
+<div class="auction-card">
+    <a href="<?php echo e(route('auctions.show', $auction)); ?>" style="text-decoration: none;">
+        <div class="auction-card-image">
+            <i class="fas fa-image"></i>
+            <span class="badge-status <?php echo e($auction->isActive() ? '' : 'ended'); ?>">
+                <?php echo e($auction->isActive() ? 'AKTIVNA' : strtoupper($auction->status)); ?>
+
+            </span>
+        </div>
+    </a>
+    <div class="auction-card-body">
+        <div class="auction-card-category"><?php echo e($auction->category->name ?? ''); ?></div>
+        <a href="<?php echo e(route('auctions.show', $auction)); ?>" class="auction-card-title">
+            <?php echo e($auction->title); ?>
+
+        </a>
+        <div class="auction-card-meta">
+            <div>
+                <div class="auction-card-price"><?php echo e(number_format((float) $auction->current_price, 0)); ?> RSD</div>
+                <small class="text-muted"><?php echo e($auction->bids_count ?? $auction->bids()->count()); ?> ponuda</small>
+            </div>
+            <div class="text-end">
+                <div class="auction-card-time <?php echo e($urgent ? 'urgent' : ''); ?>">
+                    <i class="fas fa-clock"></i> <?php echo e($auction->timeRemaining()); ?>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<?php /**PATH C:\Users\Metoda\Downloads\auctionchain\auctionchain\resources\views/partials/auction-card.blade.php ENDPATH**/ ?>
