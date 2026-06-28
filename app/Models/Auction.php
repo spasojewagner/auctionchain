@@ -21,6 +21,7 @@ class Auction extends Model
         'description',
         'starting_price',
         'current_price',
+        'buy_now_price',
         'status',
         'starts_at',
         'ends_at',
@@ -33,6 +34,7 @@ class Auction extends Model
             'ends_at' => 'datetime',
             'starting_price' => 'decimal:2',
             'current_price' => 'decimal:2',
+            'buy_now_price' => 'decimal:2',
         ];
     }
 
@@ -94,6 +96,18 @@ class Auction extends Model
     public function hasEnded(): bool
     {
         return $this->ends_at->isPast() || $this->status !== 'active';
+    }
+
+    /**
+     * Da li je "Kupi odmah" opcija trenutno dostupna.
+     * Dostupna je samo dok je aukcija aktivna, ima buy_now cenu,
+     * i trenutna ponuda još nije dostigla tu cenu.
+     */
+    public function buyNowAvailable(): bool
+    {
+        return $this->isActive()
+            && $this->buy_now_price !== null
+            && (float) $this->current_price < (float) $this->buy_now_price;
     }
 
     public function timeRemaining(): string

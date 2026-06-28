@@ -22,18 +22,9 @@ use RuntimeException;
  */
 class EscrowService
 {
-    /**
-     * Postavlja novu ponudu na aukciju.
-     * - Validira: korisnik nije prodavac, aukcija aktivna, iznos > trenutne cene, ima dovoljno balansa
-     * - Vraca prethodnom najvisem ponudjacu njegov locked_balance
-     * - Zakljucava (locked_balance) sredstva novog najviseg ponudjaca
-     * - Azurira current_price aukcije
-     * - Salje notifikaciju nadlicitiranom korisniku
-     */
     public function placeBid(User $bidder, Auction $auction, float $amount): Bid
     {
         return DB::transaction(function () use ($bidder, $auction, $amount) {
-            // Reload sa lock-om - sprecava race conditions
             $auction = Auction::lockForUpdate()->findOrFail($auction->id);
             $bidder = User::lockForUpdate()->findOrFail($bidder->id);
 
@@ -52,25 +43,21 @@ class EscrowService
             $currentHighest = (float) $auction->current_price;
             $hasBids = $auction->bids()->exists();
 
-            // Ako vec ima ponuda, mora biti veca; ako nema, mora biti >= starting_price
             $minimumBid = $hasBids ? $currentHighest + 0.01 : (float) $auction->starting_price;
 
             if ($amount < $minimumBid) {
                 throw new InvalidArgumentException("Ponuda mora biti najmanje " . number_format($minimumBid, 2) . " RSD.");
             }
 
-            // Provera da li bidder vec ima najvisu ponudu - ne moze sam sebe da nadlicitira
             $previousHighest = $auction->bids()->orderByDesc('amount')->first();
             if ($previousHighest && $previousHighest->user_id === $bidder->id) {
                 throw new InvalidArgumentException('Već imate najvišu ponudu na ovoj aukciji.');
             }
 
-            // Provera dostupnog balansa
             if ((float) $bidder->balance < $amount) {
                 throw new RuntimeException('Nemate dovoljno sredstava na balansu. Potrebno: ' . number_format($amount, 2) . ' RSD, dostupno: ' . number_format($bidder->balance, 2) . ' RSD.');
             }
 
-            // 1. Vrati prethodnom najvisem ponudjacu njegov locked_balance
             if ($previousHighest) {
                 $this->unlockFundsForUser(
                     $previousHighest->user_id,
@@ -79,7 +66,6 @@ class EscrowService
                     'Nadlicitirani ste na aukciji #' . $auction->id
                 );
 
-                // Notifikuj nadlicitiranog
                 Notification::create([
                     'user_id' => $previousHighest->user_id,
                     'auction_id' => $auction->id,
@@ -88,7 +74,6 @@ class EscrowService
                 ]);
             }
 
-            // 2. Zakljucaj sredstva novog ponudjaca
             $bidder->balance = (float) $bidder->balance - $amount;
             $bidder->locked_balance = (float) $bidder->locked_balance + $amount;
             $bidder->save();
@@ -103,7 +88,6 @@ class EscrowService
                 'note' => 'Licitacija na aukciji #' . $auction->id,
             ]);
 
-            // 3. Kreiraj bid i azuriraj current_price aukcije
             $bid = Bid::create([
                 'auction_id' => $auction->id,
                 'user_id' => $bidder->id,
@@ -118,19 +102,108 @@ class EscrowService
     }
 
     /**
-     * Zavrsava aukciju koja je istekla.
-     * - Postavlja status na 'ended'
-     * - Postavlja winner_id na korisnika sa najvisom ponudom
-     * - Salje notifikacije pobedniku i prodavcu
-     * - Ako nema ponuda, postavlja status na 'cancelled'
+     * "Kupi odmah" - korisnik momentalno kupuje predmet po buy_now ceni.
+     * Aukcija se odmah završava, kupac postaje pobednik, a sredstva se
+     * zaključavaju u escrow (kao kod normalne pobede) do potvrde prijema.
      */
+    public function buyNow(User $buyer, Auction $auction): void
+    {
+        DB::transaction(function () use ($buyer, $auction) {
+            $auction = Auction::lockForUpdate()->findOrFail($auction->id);
+            $buyer = User::lockForUpdate()->findOrFail($buyer->id);
+
+            if (!$auction->isActive()) {
+                throw new RuntimeException('Aukcija nije aktivna.');
+            }
+            if (is_null($auction->buy_now_price)) {
+                throw new RuntimeException('Ova aukcija nema "Kupi odmah" cenu.');
+            }
+            if ($auction->seller_id === $buyer->id) {
+                throw new InvalidArgumentException('Ne možete kupiti sopstvenu aukciju.');
+            }
+            if ($buyer->is_suspended) {
+                throw new RuntimeException('Vaš nalog je suspendovan.');
+            }
+
+            $price = (float) $auction->buy_now_price;
+
+            if ((float) $auction->current_price >= $price && $auction->bids()->exists()) {
+                throw new RuntimeException('Trenutna ponuda je već dostigla "Kupi odmah" cenu.');
+            }
+
+            if ((float) $buyer->balance < $price) {
+                throw new RuntimeException('Nemate dovoljno sredstava. Potrebno: ' . number_format($price, 2) . ' RSD, dostupno: ' . number_format($buyer->balance, 2) . ' RSD.');
+            }
+
+            // Vrati prethodnom najvišem ponuđaču zaključana sredstva
+            $previousHighest = $auction->bids()->orderByDesc('amount')->first();
+            if ($previousHighest && $previousHighest->user_id !== $buyer->id) {
+                $this->unlockFundsForUser(
+                    $previousHighest->user_id,
+                    (float) $previousHighest->amount,
+                    $auction->id,
+                    'Aukcija #' . $auction->id . ' kupljena preko "Kupi odmah"'
+                );
+
+                Notification::create([
+                    'user_id' => $previousHighest->user_id,
+                    'auction_id' => $auction->id,
+                    'type' => 'outbid',
+                    'message' => "Aukcija '{$auction->title}' je kupljena preko 'Kupi odmah'.",
+                ]);
+            }
+
+            // Zaključaj sredstva kupca
+            $buyer->balance = (float) $buyer->balance - $price;
+            $buyer->locked_balance = (float) $buyer->locked_balance + $price;
+            $buyer->save();
+
+            Transaction::create([
+                'user_id' => $buyer->id,
+                'auction_id' => $auction->id,
+                'type' => 'lock',
+                'amount' => $price,
+                'balance_after' => $buyer->balance,
+                'locked_balance_after' => $buyer->locked_balance,
+                'note' => 'Kupi odmah - aukcija #' . $auction->id,
+            ]);
+
+            // Zabeleži kao ponudu radi istorije
+            Bid::create([
+                'auction_id' => $auction->id,
+                'user_id' => $buyer->id,
+                'amount' => $price,
+            ]);
+
+            // Završi aukciju odmah
+            $auction->current_price = $price;
+            $auction->status = 'ended';
+            $auction->winner_id = $buyer->id;
+            $auction->save();
+
+            Notification::create([
+                'user_id' => $buyer->id,
+                'auction_id' => $auction->id,
+                'type' => 'auction_won',
+                'message' => "Kupili ste '{$auction->title}' preko 'Kupi odmah' za " . number_format($price, 2) . " RSD.",
+            ]);
+
+            Notification::create([
+                'user_id' => $auction->seller_id,
+                'auction_id' => $auction->id,
+                'type' => 'auction_ended_seller',
+                'message' => "Vaša aukcija '{$auction->title}' je prodata preko 'Kupi odmah' za " . number_format($price, 2) . " RSD.",
+            ]);
+        });
+    }
+
     public function endAuction(Auction $auction): void
     {
         DB::transaction(function () use ($auction) {
             $auction = Auction::lockForUpdate()->findOrFail($auction->id);
 
             if ($auction->status !== 'active') {
-                return; // Vec zavrsena
+                return;
             }
 
             $winningBid = $auction->bids()->orderByDesc('amount')->first();
@@ -145,7 +218,6 @@ class EscrowService
             $auction->winner_id = $winningBid->user_id;
             $auction->save();
 
-            // Notifikacije
             Notification::create([
                 'user_id' => $winningBid->user_id,
                 'auction_id' => $auction->id,
@@ -162,9 +234,6 @@ class EscrowService
         });
     }
 
-    /**
-     * Kupac potvrdjuje prijem - novac se oslobadja prodavcu.
-     */
     public function confirmDelivery(Auction $auction, User $buyer): void
     {
         DB::transaction(function () use ($auction, $buyer) {
@@ -180,7 +249,6 @@ class EscrowService
 
             $amount = (float) $auction->current_price;
 
-            // Skini kupcu locked_balance
             $buyer = User::lockForUpdate()->findOrFail($buyer->id);
             $buyer->locked_balance = (float) $buyer->locked_balance - $amount;
             $buyer->save();
@@ -195,7 +263,6 @@ class EscrowService
                 'note' => 'Isplata prodavcu za aukciju #' . $auction->id,
             ]);
 
-            // Dodaj prodavcu balance
             $seller = User::lockForUpdate()->findOrFail($auction->seller_id);
             $seller->balance = (float) $seller->balance + $amount;
             $seller->save();
@@ -215,10 +282,6 @@ class EscrowService
         });
     }
 
-    /**
-     * Admin oslobađa novac kupcu (vraca u balance).
-     * Koristi se za razresavanje sporova u korist kupca, ili za otkazivanje aukcije.
-     */
     public function refundBuyer(Auction $auction, string $note): void
     {
         DB::transaction(function () use ($auction, $note) {
@@ -247,10 +310,6 @@ class EscrowService
         });
     }
 
-    /**
-     * Dodavanje sredstava na korisnicki balans (deposit).
-     * Za seminarski - admin ili korisnik moze "uplatiti" virtuelno.
-     */
     public function deposit(User $user, float $amount, string $note = 'Uplata na balans'): Transaction
     {
         if ($amount <= 0) {
@@ -274,9 +333,6 @@ class EscrowService
         });
     }
 
-    /**
-     * Interna helper metoda - oslobadja zakljucana sredstva korisniku.
-     */
     private function unlockFundsForUser(int $userId, float $amount, int $auctionId, string $note): void
     {
         $user = User::lockForUpdate()->findOrFail($userId);

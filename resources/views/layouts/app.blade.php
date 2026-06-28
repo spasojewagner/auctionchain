@@ -6,16 +6,23 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'AuctionChain - Aukciona platforma')</title>
 
+    <link rel="icon" type="image/png" href="{{ asset('images/logo.png') }}">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
 </head>
 <body>
+    @php
+        $globalCategories = \App\Models\Category::orderBy('name')->get();
+    @endphp
+
     <nav class="navbar navbar-expand-lg navbar-custom sticky-top">
         <div class="container">
-            <a class="navbar-brand" href="{{ route('home') }}">
-                <i class="fas fa-gavel me-2"></i>AuctionChain
+            <a class="navbar-brand d-flex align-items-center gap-2" href="{{ route('home') }}">
+                <img src="{{ asset('images/logo.png') }}" alt="AuctionChain" class="logo-mark">
+                <span>AuctionChain</span>
             </a>
 
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -27,14 +34,31 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{{ route('auctions.index') }}">Aukcije</a>
                     </li>
+
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navCategories" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            Kategorije
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-categories" aria-labelledby="navCategories">
+                            @foreach($globalCategories as $cat)
+                                <li>
+                                    <a class="dropdown-item" href="{{ route('auctions.index', ['category' => $cat->id]) }}">
+                                        <i class="fas fa-tag me-2 text-primary"></i>{{ $cat->name }}
+                                    </a>
+                                </li>
+                            @endforeach
+                            @if($globalCategories->isEmpty())
+                                <li><span class="dropdown-item-text text-muted">Nema kategorija</span></li>
+                            @endif
+                        </ul>
+                    </li>
+
                     @auth
                         <li class="nav-item">
                             <a class="nav-link" href="{{ route('auctions.create') }}">
                                 <i class="fas fa-plus me-1"></i>Nova aukcija
                             </a>
                         </li>
-                    @endauth
-                    @auth
                         @if(auth()->user()->isAdmin())
                             <li class="nav-item">
                                 <a class="nav-link" href="{{ route('admin.dashboard') }}">
@@ -49,11 +73,13 @@
                     @auth
                         <li class="nav-item me-3">
                             <span class="navbar-balance">
-                                <i class="fas fa-wallet me-1"></i>
-                                <span id="navbar-balance">{{ number_format((float) auth()->user()->balance, 2) }}</span> RSD
+                                <span class="nb-main">
+                                    <i class="fas fa-wallet me-1"></i>
+                                    <span id="navbar-balance">{{ number_format((float) auth()->user()->balance, 2) }}</span> RSD
+                                </span>
                                 @if((float) auth()->user()->locked_balance > 0)
-                                    <span class="locked d-block">
-                                        <i class="fas fa-lock"></i>
+                                    <span class="nb-locked">
+                                        <i class="fas fa-lock me-1"></i>
                                         <span id="navbar-locked">{{ number_format((float) auth()->user()->locked_balance, 2) }}</span> zaključano
                                     </span>
                                 @endif
@@ -100,19 +126,81 @@
         </div>
     </nav>
 
+    <div class="toast-container" id="toast-container"></div>
+
     @include('partials.flash')
 
     <main>
         @yield('content')
     </main>
 
-    <footer class="py-4 mt-5 bg-dark text-white-50">
-        <div class="container text-center">
-            <p class="mb-0">AuctionChain &copy; {{ date('Y') }} | Seminarski rad - Internet programiranje, FTN Čačak</p>
+    <footer class="footer-custom mt-5">
+        <div class="container py-5">
+            <div class="row g-4">
+                <div class="col-lg-4 col-md-6">
+                    <a class="d-flex align-items-center gap-2 mb-3 text-decoration-none" href="{{ route('home') }}">
+                        <img src="{{ asset('images/logo.png') }}" alt="" width="40" height="40">
+                        <span class="footer-brand">AuctionChain</span>
+                    </a>
+                    <p class="footer-text mb-3">Bezbedna onlajn aukciona platforma sa escrow zaštitom za kupce i prodavce.</p>
+                    <div class="footer-social">
+                        <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                        <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+                        <a href="#" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+
+                <div class="col-lg-2 col-md-6 col-6">
+                    <h6 class="footer-title">Kategorije</h6>
+                    <ul class="footer-links">
+                        @foreach($globalCategories->take(8) as $cat)
+                            <li><a href="{{ route('auctions.index', ['category' => $cat->id]) }}">{{ $cat->name }}</a></li>
+                        @endforeach
+                    </ul>
+                </div>
+
+                <div class="col-lg-2 col-md-6 col-6">
+                    <h6 class="footer-title">Linkovi</h6>
+                    <ul class="footer-links">
+                        <li><a href="{{ route('auctions.index') }}">Sve aukcije</a></li>
+                        @auth
+                            <li><a href="{{ route('auctions.create') }}">Postavi aukciju</a></li>
+                            <li><a href="{{ route('profile.show') }}">Moj profil</a></li>
+                        @else
+                            <li><a href="{{ route('login') }}">Prijava</a></li>
+                            <li><a href="{{ route('register') }}">Registracija</a></li>
+                        @endauth
+                    </ul>
+                </div>
+
+                <div class="col-lg-4 col-md-6">
+                    <h6 class="footer-title">Newsletter</h6>
+                    <p class="footer-text mb-2">Prijavi se za nove aukcije i ponude.</p>
+                    <form action="{{ route('newsletter.subscribe') }}" method="POST" class="newsletter-form">
+                        @csrf
+                        <input type="email" name="email" placeholder="Vaš email" required>
+                        <button type="submit"><i class="fas fa-paper-plane"></i></button>
+                    </form>
+                    @error('email')
+                        <small class="text-warning d-block mt-1">{{ $message }}</small>
+                    @enderror
+                </div>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <div class="container d-flex flex-wrap justify-content-between align-items-center gap-2">
+                <span>AuctionChain &copy; {{ date('Y') }}</span>
+                <span>Seminarski rad — Internet programiranje, FTN Čačak</span>
+            </div>
         </div>
     </footer>
 
+    @include('partials.chatbot')
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
     <script src="{{ asset('js/app.js') }}"></script>
     @yield('scripts')
 </body>

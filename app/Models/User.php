@@ -19,6 +19,7 @@ class User extends Authenticatable
         'balance',
         'locked_balance',
         'is_suspended',
+        'wallet_address',
     ];
 
     protected $hidden = [

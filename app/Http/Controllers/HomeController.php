@@ -4,29 +4,54 @@ namespace App\Http\Controllers;
 
 use App\Models\Auction;
 use App\Models\Category;
-use Illuminate\Http\Request;
 
 class HomeController extends Controller
 {
     public function index()
     {
-        $featuredAuctions = Auction::active()
-            ->with(['primaryImage', 'category', 'seller'])
+        $categories = Category::withCount(['auctions' => function ($q) {
+            $q->where('status', 'active')->where('ends_at', '>', now());
+        }])->orderBy('name')->get();
+
+        // Promovisane = aktivne aukcije sa najviše ponuda
+        $promotedAuctions = Auction::active()
+            ->with(['primaryImage', 'images', 'category', 'seller'])
             ->withCount('bids')
             ->orderByDesc('bids_count')
-            ->limit(6)
+            ->take(6)
             ->get();
 
-        $endingSoon = Auction::active()
-            ->with(['primaryImage', 'category'])
+        // Kupi odmah ponude
+        $buyNowAuctions = Auction::active()
+            ->with(['primaryImage', 'images', 'category', 'seller'])
+            ->withCount('bids')
+            ->whereNotNull('buy_now_price')
             ->orderBy('ends_at')
-            ->limit(4)
+            ->take(4)
             ->get();
 
-        $categories = Category::withCount(['auctions' => function ($q) {
-            $q->where('status', 'active');
-        }])->get();
+        // Uskoro se završavaju
+        $endingSoon = Auction::active()
+            ->with(['primaryImage', 'images', 'category', 'seller'])
+            ->withCount('bids')
+            ->orderBy('ends_at')
+            ->take(4)
+            ->get();
 
-        return view('home', compact('featuredAuctions', 'endingSoon', 'categories'));
+        // Nove na platformi
+        $newestAuctions = Auction::active()
+            ->with(['primaryImage', 'images', 'category', 'seller'])
+            ->withCount('bids')
+            ->orderByDesc('created_at')
+            ->take(8)
+            ->get();
+
+        return view('home', compact(
+            'categories',
+            'promotedAuctions',
+            'buyNowAuctions',
+            'endingSoon',
+            'newestAuctions'
+        ));
     }
 }

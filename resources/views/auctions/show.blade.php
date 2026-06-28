@@ -4,18 +4,30 @@
 
 @section('content')
 <div class="container py-4" id="auction-live" data-auction-id="{{ $auction->id }}">
-    <nav class="mb-3">
+    @php
+        $primaryImg = $auction->primaryImage ?? $auction->images->first();
+        $mainImgUrl = $primaryImg ? asset('uploads/' . $primaryImg->path) : asset('uploads/placeholder.jpg');
+        $isOwner = auth()->check() && (auth()->id() === $auction->seller_id || auth()->user()->isAdmin());
+    @endphp
+
+    <nav class="mb-3 d-flex justify-content-between align-items-center">
         <a href="{{ route('auctions.index') }}" class="text-decoration-none">
             <i class="fas fa-arrow-left me-1"></i>Sve aukcije
         </a>
+        @if($isOwner)
+            <a href="{{ route('auctions.edit', $auction) }}" class="btn btn-sm btn-outline-primary">
+                <i class="fas fa-images me-1"></i>Uredi slike
+            </a>
+        @endif
     </nav>
 
     <div class="row">
         {{-- SLIKE I OPIS --}}
         <div class="col-md-7">
-            <div class="auction-detail mb-4">
-                <div id="main-auction-image" class="auction-main-image">
-                    <i class="fas fa-image"></i>
+            <div class="auction-detail mb-4" data-aos="fade-right">
+                <div class="auction-main-wrap">
+                    <div class="auction-main-blur" style="background-image: url('{{ $mainImgUrl }}');"></div>
+                    <div id="main-auction-image" class="auction-main-image" style="background-image: url('{{ $mainImgUrl }}');"></div>
                 </div>
                 @if($auction->images->count() > 1)
                     <div class="auction-thumbnails">
@@ -29,7 +41,7 @@
                 @endif
             </div>
 
-            <div class="form-card">
+            <div class="form-card" data-aos="fade-up">
                 <div class="d-flex justify-content-between align-items-start mb-3">
                     <div>
                         <span class="auction-card-category">{{ $auction->category->name }}</span>
@@ -48,25 +60,17 @@
                 <hr>
 
                 <div class="row text-muted small">
-                    <div class="col-md-6">
-                        <strong>Prodavac:</strong> {{ $auction->seller->name }}
-                    </div>
-                    <div class="col-md-6">
-                        <strong>Postavljeno:</strong> {{ $auction->starts_at->format('d.m.Y H:i') }}
-                    </div>
-                    <div class="col-md-6 mt-2">
-                        <strong>Početna cena:</strong> {{ number_format((float) $auction->starting_price, 2) }} RSD
-                    </div>
-                    <div class="col-md-6 mt-2">
-                        <strong>Završetak:</strong> {{ $auction->ends_at->format('d.m.Y H:i') }}
-                    </div>
+                    <div class="col-md-6"><strong>Prodavac:</strong> {{ $auction->seller->name }}</div>
+                    <div class="col-md-6"><strong>Postavljeno:</strong> {{ $auction->starts_at->format('d.m.Y H:i') }}</div>
+                    <div class="col-md-6 mt-2"><strong>Početna cena:</strong> {{ number_format((float) $auction->starting_price, 2) }} RSD</div>
+                    <div class="col-md-6 mt-2"><strong>Završetak:</strong> {{ $auction->ends_at->format('d.m.Y H:i') }}</div>
                 </div>
             </div>
         </div>
 
         {{-- LICITACIJA I PONUDE --}}
         <div class="col-md-5">
-            <div class="bid-form mb-4">
+            <div class="bid-form mb-4" data-aos="fade-left">
                 <h5><i class="fas fa-gavel me-2"></i>Trenutno stanje</h5>
 
                 <div class="row mb-3">
@@ -99,7 +103,7 @@
                                     <input type="number" name="amount" class="form-control form-control-lg"
                                            min="{{ (float) $auction->current_price + 0.01 }}" step="0.01"
                                            placeholder="Min. {{ number_format((float) $auction->current_price + 1, 2) }}" required>
-                                    <button type="submit" class="btn btn-primary-custom">Licitiraj</button>
+                                    <button type="submit" class="btn btn-primary-custom btn-ripple">Licitiraj</button>
                                 </div>
                                 <div id="bid-error" class="text-danger small"></div>
                                 <small class="text-muted">
@@ -108,7 +112,7 @@
                             </form>
                         @endif
                     @else
-                        <a href="{{ route('login') }}" class="btn btn-primary-custom w-100">
+                        <a href="{{ route('login') }}" class="btn btn-primary-custom w-100 btn-ripple">
                             <i class="fas fa-sign-in-alt me-2"></i>Prijavite se za licitiranje
                         </a>
                     @endauth
@@ -136,7 +140,29 @@
                 @endif
             </div>
 
-            <div class="form-card">
+            {{-- KUPI ODMAH --}}
+            @if($auction->buyNowAvailable() && auth()->check() && auth()->id() !== $auction->seller_id)
+                <div class="buy-now-box mb-4" data-aos="fade-left">
+                    <div class="mb-1"><i class="fas fa-bolt text-warning me-1"></i> <strong>Kupi odmah</strong></div>
+                    <div class="price mb-2">{{ number_format((float) $auction->buy_now_price, 2) }} RSD</div>
+                    <p class="small text-muted mb-3">Preskoči licitaciju i kupi predmet odmah po fiksnoj ceni.</p>
+                    <form action="{{ route('auctions.buynow', $auction) }}" method="POST"
+                          onsubmit="return confirm('Kupiti predmet odmah za {{ number_format((float) $auction->buy_now_price, 2) }} RSD?');">
+                        @csrf
+                        <button type="submit" class="btn btn-warning w-100 btn-ripple fw-bold">
+                            <i class="fas fa-bolt me-1"></i>Kupi odmah
+                        </button>
+                    </form>
+                </div>
+            @elseif($auction->buyNowAvailable() && !auth()->check())
+                <div class="buy-now-box mb-4">
+                    <div class="mb-1"><i class="fas fa-bolt text-warning me-1"></i> <strong>Kupi odmah</strong></div>
+                    <div class="price mb-2">{{ number_format((float) $auction->buy_now_price, 2) }} RSD</div>
+                    <a href="{{ route('login') }}" class="btn btn-warning w-100">Prijavite se za kupovinu</a>
+                </div>
+            @endif
+
+            <div class="form-card" data-aos="fade-left" data-aos-delay="100">
                 <h5 class="mb-3"><i class="fas fa-list me-2"></i>Istorija ponuda</h5>
                 <div id="bid-history" class="bid-history">
                     @forelse($auction->bids->take(10) as $bid)

@@ -52,7 +52,7 @@ class AuthController extends Controller
             'email' => $data['email'],
             'password' => Hash::make($data['password']),
             'role' => 'user',
-            'balance' => 10000, // Pocetni balans za seminarski - 10.000 RSD virtuelnog novca
+            'balance' => 0, // Pocetni balans za seminarski - 10.000 RSD virtuelnog novca
             'locked_balance' => 0,
         ]);
 

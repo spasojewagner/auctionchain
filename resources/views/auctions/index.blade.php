@@ -9,7 +9,7 @@
     <div class="row">
         {{-- FILTERI --}}
         <div class="col-md-3 mb-4">
-            <div class="form-card sticky-top" style="top: 90px;">
+           <div class="form-card filter-sticky">
                 <h5 class="mb-3"><i class="fas fa-filter me-2"></i>Filteri</h5>
 
                 <form method="GET" action="{{ route('auctions.index') }}">

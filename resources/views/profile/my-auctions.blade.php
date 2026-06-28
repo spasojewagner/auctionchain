@@ -6,7 +6,7 @@
 <div class="container py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2><i class="fas fa-tag me-2"></i>Moje aukcije</h2>
-        <a href="{{ route('auctions.create') }}" class="btn btn-primary-custom">
+        <a href="{{ route('auctions.create') }}" class="btn btn-primary-custom btn-ripple">
             <i class="fas fa-plus me-2"></i>Nova aukcija
         </a>
     </div>
@@ -40,15 +40,18 @@
                                 <td><span class="badge badge-{{ $auction->status }}">{{ strtoupper($auction->status) }}</span></td>
                                 <td><small>{{ $auction->ends_at->format('d.m.Y H:i') }}</small></td>
                                 <td>
-                                    <a href="{{ route('auctions.show', $auction) }}" class="btn btn-sm btn-outline-primary">
+                                    <a href="{{ route('auctions.show', $auction) }}" class="btn btn-sm btn-outline-primary" title="Pogledaj">
                                         <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{{ route('auctions.edit', $auction) }}" class="btn btn-sm btn-outline-secondary" title="Uredi slike">
+                                        <i class="fas fa-images"></i>
                                     </a>
                                     @if($auction->bids_count === 0 && $auction->status === 'active')
                                         <form action="{{ route('auctions.destroy', $auction) }}" method="POST" class="d-inline"
                                               onsubmit="return confirm('Obrisati aukciju?')">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Obriši">
                                                 <i class="fas fa-trash"></i>
                                             </button>
                                         </form>

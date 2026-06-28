@@ -5,10 +5,10 @@
 @section('content')
 <div class="container py-5">
     <div class="row justify-content-center">
-        <div class="col-md-5">
-            <div class="form-card">
-                <h2 class="mb-2 text-center">Registracija</h2>
-                <p class="text-muted text-center mb-4">Dobijate 10.000 RSD virtuelnog balansa</p>
+        <div class="col-md-6 col-lg-5">
+            <div class="form-card" data-aos="fade-up">
+                <h2 class="text-center mb-1">Registracija</h2>
+                <p class="text-center text-muted mb-4">Kreiraj nalog i počni da licitiraš</p>
 
                 <form method="POST" action="{{ route('register') }}">
                     @csrf
@@ -38,7 +38,7 @@
                         <input type="password" name="password_confirmation" class="form-control" required>
                     </div>
 
-                    <button type="submit" class="btn btn-primary-custom w-100">
+                    <button type="submit" class="btn btn-primary-custom w-100 btn-ripple">
                         <i class="fas fa-user-plus me-2"></i>Registruj se
                     </button>
                 </form>

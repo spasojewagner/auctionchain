@@ -1,12 +1,18 @@
 @php
     $hoursLeft = $auction->ends_at->diffInHours(now(), absolute: true);
     $urgent = $hoursLeft < 6 && $auction->isActive();
+    $cardImg = $auction->primaryImage ?? $auction->images->first();
+    $cardImgUrl = $cardImg ? asset('uploads/' . $cardImg->path) : asset('uploads/placeholder.jpg');
 @endphp
 
-<div class="auction-card">
+<div class="auction-card" data-aos="fade-up">
     <a href="{{ route('auctions.show', $auction) }}" style="text-decoration: none;">
         <div class="auction-card-image">
-            <i class="fas fa-image"></i>
+            <div class="auction-card-image-bg" style="background-image: url('{{ $cardImgUrl }}');"></div>
+            <img src="{{ $cardImgUrl }}" alt="{{ $auction->title }}" class="auction-card-image-fg" loading="lazy">
+            @if($auction->buyNowAvailable())
+                <span class="badge-buynow"><i class="fas fa-bolt"></i> Kupi odmah</span>
+            @endif
             <span class="badge-status {{ $auction->isActive() ? '' : 'ended' }}">
                 {{ $auction->isActive() ? 'AKTIVNA' : strtoupper($auction->status) }}
             </span>

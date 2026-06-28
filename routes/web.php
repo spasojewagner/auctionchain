@@ -5,31 +5,28 @@ use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\DisputeController as AdminDisputeController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
+use App\Http\Controllers\AiController;
 use App\Http\Controllers\AuctionController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BidController;
+use App\Http\Controllers\ChatbotController;
+use App\Http\Controllers\DepositController;
 use App\Http\Controllers\DisputeController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\NewsletterController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
-/*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-| Sve rute prolaze kroz EndExpiredAuctions middleware koji finalizuje
-| aukcije kojima je isteklo vreme (jedan od nacina umesto cron-a).
-*/
-
 Route::middleware(['end.expired.auctions'])->group(function () {
 
-    // Pocetna i javne stranice
     Route::get('/', [HomeController::class, 'index'])->name('home');
     Route::get('/auctions', [AuctionController::class, 'index'])->name('auctions.index');
     Route::get('/auctions/{auction}', [AuctionController::class, 'show'])->name('auctions.show');
     Route::get('/auctions/{auction}/poll', [BidController::class, 'poll'])->name('auctions.poll');
 
-    // Autentifikacija
+    Route::post('/newsletter', [NewsletterController::class, 'subscribe'])->name('newsletter.subscribe');
+    Route::post('/chat', [ChatbotController::class, 'chat'])->name('chat');
+
     Route::middleware('guest')->group(function () {
         Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
         Route::post('/login', [AuthController::class, 'login']);
@@ -39,14 +36,24 @@ Route::middleware(['end.expired.auctions'])->group(function () {
 
     Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth')->name('logout');
 
-    // Autentifikovani korisnici
     Route::middleware('auth')->group(function () {
 
-        // Kreiranje i upravljanje aukcijama
+        // Aukcije
         Route::get('/auctions/create/new', [AuctionController::class, 'create'])->name('auctions.create');
         Route::post('/auctions', [AuctionController::class, 'store'])->name('auctions.store');
         Route::delete('/auctions/{auction}', [AuctionController::class, 'destroy'])->name('auctions.destroy');
         Route::post('/auctions/{auction}/confirm-delivery', [AuctionController::class, 'confirmDelivery'])->name('auctions.confirm');
+        Route::post('/auctions/{auction}/buy-now', [AuctionController::class, 'buyNow'])->name('auctions.buynow');
+
+        // Uređivanje slika aukcije
+        Route::get('/auctions/{auction}/edit', [AuctionController::class, 'edit'])->name('auctions.edit');
+        Route::post('/auctions/{auction}/images', [AuctionController::class, 'storeImages'])->name('auctions.images.store');
+        Route::delete('/auctions/{auction}/images/{image}', [AuctionController::class, 'destroyImage'])->name('auctions.images.destroy');
+        Route::post('/auctions/{auction}/images/{image}/primary', [AuctionController::class, 'setPrimaryImage'])->name('auctions.images.primary');
+
+        // AI
+        Route::post('/ai/describe', [AiController::class, 'describe'])->name('ai.describe');
+        Route::post('/ai/describe-image', [AiController::class, 'describeFromImage'])->name('ai.describe-image');
 
         // Licitiranje (AJAX)
         Route::post('/auctions/{auction}/bids', [BidController::class, 'store'])->name('bids.store');
@@ -60,23 +67,24 @@ Route::middleware(['end.expired.auctions'])->group(function () {
         Route::get('/profile/auctions', [ProfileController::class, 'myAuctions'])->name('profile.auctions');
         Route::get('/profile/bids', [ProfileController::class, 'myBids'])->name('profile.bids');
         Route::post('/profile/deposit', [ProfileController::class, 'deposit'])->name('profile.deposit');
+        Route::post('/profile/wallet', [ProfileController::class, 'saveWallet'])->name('profile.wallet');
         Route::get('/profile/notifications', [ProfileController::class, 'notifications'])->name('profile.notifications');
         Route::get('/profile/notifications/count', [ProfileController::class, 'notificationsCount'])->name('profile.notifications.count');
+
+        // Stripe uplata
+        Route::post('/deposit/checkout', [DepositController::class, 'checkout'])->name('deposit.checkout');
+        Route::get('/deposit/success', [DepositController::class, 'success'])->name('deposit.success');
+        Route::get('/deposit/cancel', [DepositController::class, 'cancel'])->name('deposit.cancel');
     });
 
-    // Admin rute
     Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(function () {
         Route::get('/', [AdminDashboardController::class, 'index'])->name('dashboard');
-
         Route::resource('categories', AdminCategoryController::class)->except(['show']);
-
         Route::get('/users', [AdminUserController::class, 'index'])->name('users.index');
         Route::post('/users/{user}/toggle-suspension', [AdminUserController::class, 'toggleSuspension'])->name('users.toggle');
         Route::post('/users/{user}/adjust-balance', [AdminUserController::class, 'adjustBalance'])->name('users.balance');
-
         Route::get('/auctions', [AdminAuctionController::class, 'index'])->name('auctions.index');
         Route::delete('/auctions/{auction}', [AdminAuctionController::class, 'destroy'])->name('auctions.destroy');
-
         Route::get('/disputes', [AdminDisputeController::class, 'index'])->name('disputes.index');
         Route::get('/disputes/{dispute}', [AdminDisputeController::class, 'show'])->name('disputes.show');
         Route::post('/disputes/{dispute}/resolve', [AdminDisputeController::class, 'resolve'])->name('disputes.resolve');

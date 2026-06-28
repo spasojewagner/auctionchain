@@ -47,6 +47,10 @@ class ProfileController extends Controller
         return view('profile.my-bids', compact('myBids', 'wonAuctions'));
     }
 
+    /**
+     * Instant (virtuelna) uplata - ostaje kao fallback.
+     * Glavni tok uplate sada ide preko Stripe-a (DepositController).
+     */
     public function deposit(Request $request)
     {
         $data = $request->validate([
@@ -62,6 +66,26 @@ class ProfileController extends Controller
         return back()->with('success', 'Uplata uspešna! Balans ažuriran.');
     }
 
+    /**
+     * Čuva adresu MetaMask novčanika (AJAX poziv sa frontenda).
+     */
+    public function saveWallet(Request $request)
+    {
+        $data = $request->validate([
+            'wallet_address' => ['required', 'string', 'regex:/^0x[a-fA-F0-9]{40}$/'],
+        ]);
+
+        $user = Auth::user();
+        $user->wallet_address = $data['wallet_address'];
+        $user->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Novčanik uspešno povezan!',
+            'wallet' => $data['wallet_address'],
+        ]);
+    }
+
     public function notifications()
     {
         $notifications = Auth::user()->notifications()
@@ -69,7 +93,6 @@ class ProfileController extends Controller
             ->latest()
             ->paginate(20);
 
-        // Markiraj sve kao procitane prilikom otvaranja stranice
         Auth::user()->unreadNotifications()->update(['read_at' => now()]);
 
         return view('profile.notifications', compact('notifications'));
