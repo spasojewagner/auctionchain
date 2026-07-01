@@ -997,3 +997,360 @@
 #64 C:/Users/Metoda/Desktop/auctionchain/vendor/laravel/framework/src/Illuminate/Foundation/resources/server.php(23): require_once('C://Users//Metoda...')
 #65 {main}
 "} 
+[2026-06-28 21:19:32] local.DEBUG: From: AuctionChain <noreply@auctionchain.test>
+To: admin@auctionchain.test
+Subject: AuctionChain - novo =?utf-8?Q?obave=C5=A1tenje?=
+MIME-Version: 1.0
+Date: Sun, 28 Jun 2026 21:19:32 +0200
+Message-ID: <3fecdf2750a03e52b60e5c44e397dae8@auctionchain.test>
+Content-Type: text/html; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin:0; padding:0; background:#f1f5f9; font-family: Arial, Helvetica, sans-serif;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9; padding:24px 0;">
+        <tr>
+            <td align="center">
+                <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="background:#ffffff; border-radius:12px; overflow:hidden; max-width:560px; width:100%;">
+                    <tr>
+                        <td style="background:linear-gradient(135deg,#4f46e5,#6366f1); padding:24px 32px;">
+                            <span style="color:#ffffff; font-size:22px; font-weight:bold;">⚖ AuctionChain</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding:32px;">
+                            <h2 style="margin:0 0 16px; color:#0f172a; font-size:18px;">Imate novo obaveštenje</h2>
+                            <p style="margin:0 0 24px; color:#334155; font-size:15px; line-height:1.6;">
+                                Kupili ste &#039;Telefon&#039; preko &#039;Kupi odmah&#039; za 50,000.00 RSD.
+                            </p>
+
+                                                            <a href="http://127.0.0.1:8000/auctions/14"
+                                   style="display:inline-block; background:#6366f1; color:#ffffff; text-decoration:none; padding:12px 24px; border-radius:8px; font-weight:bold; font-size:14px;">
+                                    Pogledaj aukciju
+                                </a>
+                                                    </td>
+                    </tr>
+                    <tr>
+                        <td style="padding:20px 32px; background:#0f172a; color:#94a3b8; font-size:12px;">
+                            AuctionChain &copy; 2026 — Seminarski rad, FTN Čačak.<br>
+                            Ovo je automatska poruka, ne odgovarajte na nju.
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
+  
+[2026-06-28 21:19:32] local.DEBUG: From: AuctionChain <noreply@auctionchain.test>
+To: marko@test.com
+Subject: AuctionChain - novo =?utf-8?Q?obave=C5=A1tenje?=
+MIME-Version: 1.0
+Date: Sun, 28 Jun 2026 21:19:32 +0200
+Message-ID: <7c617c35744e9559d8538893fa745029@auctionchain.test>
+Content-Type: text/html; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin:0; padding:0; background:#f1f5f9; font-family: Arial, Helvetica, sans-serif;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9; padding:24px 0;">
+        <tr>
+            <td align="center">
+                <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="background:#ffffff; border-radius:12px; overflow:hidden; max-width:560px; width:100%;">
+                    <tr>
+                        <td style="background:linear-gradient(135deg,#4f46e5,#6366f1); padding:24px 32px;">
+                            <span style="color:#ffffff; font-size:22px; font-weight:bold;">⚖ AuctionChain</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding:32px;">
+                            <h2 style="margin:0 0 16px; color:#0f172a; font-size:18px;">Imate novo obaveštenje</h2>
+                            <p style="margin:0 0 24px; color:#334155; font-size:15px; line-height:1.6;">
+                                Vaša aukcija &#039;Telefon&#039; je prodata preko &#039;Kupi odmah&#039; za 50,000.00 RSD.
+                            </p>
+
+                                                            <a href="http://127.0.0.1:8000/auctions/14"
+                                   style="display:inline-block; background:#6366f1; color:#ffffff; text-decoration:none; padding:12px 24px; border-radius:8px; font-weight:bold; font-size:14px;">
+                                    Pogledaj aukciju
+                                </a>
+                                                    </td>
+                    </tr>
+                    <tr>
+                        <td style="padding:20px 32px; background:#0f172a; color:#94a3b8; font-size:12px;">
+                            AuctionChain &copy; 2026 — Seminarski rad, FTN Čačak.<br>
+                            Ovo je automatska poruka, ne odgovarajte na nju.
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
+  
+[2026-07-01 01:51:29] local.DEBUG: From: AuctionChain <noreply@auctionchain.test>
+To: marko@test.com
+Subject: AuctionChain - novo =?utf-8?Q?obave=C5=A1tenje?=
+MIME-Version: 1.0
+Date: Wed, 01 Jul 2026 01:51:28 +0200
+Message-ID: <288ad94cfa4c8ab54c93c572bef4d49c@auctionchain.test>
+Content-Type: text/html; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin:0; padding:0; background:#f1f5f9; font-family: Arial, Helvetica, sans-serif;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9; padding:24px 0;">
+        <tr>
+            <td align="center">
+                <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="background:#ffffff; border-radius:12px; overflow:hidden; max-width:560px; width:100%;">
+                    <tr>
+                        <td style="background:linear-gradient(135deg,#4f46e5,#6366f1); padding:24px 32px;">
+                            <span style="color:#ffffff; font-size:22px; font-weight:bold;">⚖ AuctionChain</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding:32px;">
+                            <h2 style="margin:0 0 16px; color:#0f172a; font-size:18px;">Imate novo obaveštenje</h2>
+                            <p style="margin:0 0 24px; color:#334155; font-size:15px; line-height:1.6;">
+                                Kupili ste &#039;Oklagija&#039; preko &#039;Kupi odmah&#039; za 10,000.00 RSD.
+                            </p>
+
+                                                            <a href="http://127.0.0.1:8000/auctions/17"
+                                   style="display:inline-block; background:#6366f1; color:#ffffff; text-decoration:none; padding:12px 24px; border-radius:8px; font-weight:bold; font-size:14px;">
+                                    Pogledaj aukciju
+                                </a>
+                                                    </td>
+                    </tr>
+                    <tr>
+                        <td style="padding:20px 32px; background:#0f172a; color:#94a3b8; font-size:12px;">
+                            AuctionChain &copy; 2026 — Seminarski rad, FTN Čačak.<br>
+                            Ovo je automatska poruka, ne odgovarajte na nju.
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
+  
+[2026-07-01 01:51:29] local.DEBUG: From: AuctionChain <noreply@auctionchain.test>
+To: admin@auctionchain.test
+Subject: AuctionChain - novo =?utf-8?Q?obave=C5=A1tenje?=
+MIME-Version: 1.0
+Date: Wed, 01 Jul 2026 01:51:29 +0200
+Message-ID: <f73f2deba507f40f157d4262fa97111c@auctionchain.test>
+Content-Type: text/html; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin:0; padding:0; background:#f1f5f9; font-family: Arial, Helvetica, sans-serif;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9; padding:24px 0;">
+        <tr>
+            <td align="center">
+                <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="background:#ffffff; border-radius:12px; overflow:hidden; max-width:560px; width:100%;">
+                    <tr>
+                        <td style="background:linear-gradient(135deg,#4f46e5,#6366f1); padding:24px 32px;">
+                            <span style="color:#ffffff; font-size:22px; font-weight:bold;">⚖ AuctionChain</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding:32px;">
+                            <h2 style="margin:0 0 16px; color:#0f172a; font-size:18px;">Imate novo obaveštenje</h2>
+                            <p style="margin:0 0 24px; color:#334155; font-size:15px; line-height:1.6;">
+                                Vaša aukcija &#039;Oklagija&#039; je prodata preko &#039;Kupi odmah&#039; za 10,000.00 RSD.
+                            </p>
+
+                                                            <a href="http://127.0.0.1:8000/auctions/17"
+                                   style="display:inline-block; background:#6366f1; color:#ffffff; text-decoration:none; padding:12px 24px; border-radius:8px; font-weight:bold; font-size:14px;">
+                                    Pogledaj aukciju
+                                </a>
+                                                    </td>
+                    </tr>
+                    <tr>
+                        <td style="padding:20px 32px; background:#0f172a; color:#94a3b8; font-size:12px;">
+                            AuctionChain &copy; 2026 — Seminarski rad, FTN Čačak.<br>
+                            Ovo je automatska poruka, ne odgovarajte na nju.
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
+  
+[2026-07-01 01:51:57] local.DEBUG: From: AuctionChain <noreply@auctionchain.test>
+To: admin@auctionchain.test
+Subject: AuctionChain - novo =?utf-8?Q?obave=C5=A1tenje?=
+MIME-Version: 1.0
+Date: Wed, 01 Jul 2026 01:51:57 +0200
+Message-ID: <afac205efbf030da4b1c08fbb18da2d6@auctionchain.test>
+Content-Type: text/html; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin:0; padding:0; background:#f1f5f9; font-family: Arial, Helvetica, sans-serif;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9; padding:24px 0;">
+        <tr>
+            <td align="center">
+                <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="background:#ffffff; border-radius:12px; overflow:hidden; max-width:560px; width:100%;">
+                    <tr>
+                        <td style="background:linear-gradient(135deg,#4f46e5,#6366f1); padding:24px 32px;">
+                            <span style="color:#ffffff; font-size:22px; font-weight:bold;">⚖ AuctionChain</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding:32px;">
+                            <h2 style="margin:0 0 16px; color:#0f172a; font-size:18px;">Imate novo obaveštenje</h2>
+                            <p style="margin:0 0 24px; color:#334155; font-size:15px; line-height:1.6;">
+                                Otvoren je spor za aukciju &#039;Oklagija&#039;.
+                            </p>
+
+                                                            <a href="http://127.0.0.1:8000/auctions/17"
+                                   style="display:inline-block; background:#6366f1; color:#ffffff; text-decoration:none; padding:12px 24px; border-radius:8px; font-weight:bold; font-size:14px;">
+                                    Pogledaj aukciju
+                                </a>
+                                                    </td>
+                    </tr>
+                    <tr>
+                        <td style="padding:20px 32px; background:#0f172a; color:#94a3b8; font-size:12px;">
+                            AuctionChain &copy; 2026 — Seminarski rad, FTN Čačak.<br>
+                            Ovo je automatska poruka, ne odgovarajte na nju.
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
+  
+[2026-07-01 01:53:34] local.DEBUG: From: AuctionChain <noreply@auctionchain.test>
+To: admin@auctionchain.test
+Subject: AuctionChain - novo =?utf-8?Q?obave=C5=A1tenje?=
+MIME-Version: 1.0
+Date: Wed, 01 Jul 2026 01:53:34 +0200
+Message-ID: <e5424d2dc9eaa2103c33475db09f18c6@auctionchain.test>
+Content-Type: text/html; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin:0; padding:0; background:#f1f5f9; font-family: Arial, Helvetica, sans-serif;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9; padding:24px 0;">
+        <tr>
+            <td align="center">
+                <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="background:#ffffff; border-radius:12px; overflow:hidden; max-width:560px; width:100%;">
+                    <tr>
+                        <td style="background:linear-gradient(135deg,#4f46e5,#6366f1); padding:24px 32px;">
+                            <span style="color:#ffffff; font-size:22px; font-weight:bold;">⚖ AuctionChain</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding:32px;">
+                            <h2 style="margin:0 0 16px; color:#0f172a; font-size:18px;">Imate novo obaveštenje</h2>
+                            <p style="margin:0 0 24px; color:#334155; font-size:15px; line-height:1.6;">
+                                Spor za aukciju &#039;Oklagija&#039; je rešen.
+                            </p>
+
+                                                            <a href="http://127.0.0.1:8000/auctions/17"
+                                   style="display:inline-block; background:#6366f1; color:#ffffff; text-decoration:none; padding:12px 24px; border-radius:8px; font-weight:bold; font-size:14px;">
+                                    Pogledaj aukciju
+                                </a>
+                                                    </td>
+                    </tr>
+                    <tr>
+                        <td style="padding:20px 32px; background:#0f172a; color:#94a3b8; font-size:12px;">
+                            AuctionChain &copy; 2026 — Seminarski rad, FTN Čačak.<br>
+                            Ovo je automatska poruka, ne odgovarajte na nju.
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
+  
+[2026-07-01 01:53:34] local.DEBUG: From: AuctionChain <noreply@auctionchain.test>
+To: marko@test.com
+Subject: AuctionChain - novo =?utf-8?Q?obave=C5=A1tenje?=
+MIME-Version: 1.0
+Date: Wed, 01 Jul 2026 01:53:34 +0200
+Message-ID: <b42db9f97072cd2ec8641792f0cdbc81@auctionchain.test>
+Content-Type: text/html; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin:0; padding:0; background:#f1f5f9; font-family: Arial, Helvetica, sans-serif;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9; padding:24px 0;">
+        <tr>
+            <td align="center">
+                <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="background:#ffffff; border-radius:12px; overflow:hidden; max-width:560px; width:100%;">
+                    <tr>
+                        <td style="background:linear-gradient(135deg,#4f46e5,#6366f1); padding:24px 32px;">
+                            <span style="color:#ffffff; font-size:22px; font-weight:bold;">⚖ AuctionChain</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding:32px;">
+                            <h2 style="margin:0 0 16px; color:#0f172a; font-size:18px;">Imate novo obaveštenje</h2>
+                            <p style="margin:0 0 24px; color:#334155; font-size:15px; line-height:1.6;">
+                                Spor za aukciju &#039;Oklagija&#039; je rešen.
+                            </p>
+
+                                                            <a href="http://127.0.0.1:8000/auctions/17"
+                                   style="display:inline-block; background:#6366f1; color:#ffffff; text-decoration:none; padding:12px 24px; border-radius:8px; font-weight:bold; font-size:14px;">
+                                    Pogledaj aukciju
+                                </a>
+                                                    </td>
+                    </tr>
+                    <tr>
+                        <td style="padding:20px 32px; background:#0f172a; color:#94a3b8; font-size:12px;">
+                            AuctionChain &copy; 2026 — Seminarski rad, FTN Čačak.<br>
+                            Ovo je automatska poruka, ne odgovarajte na nju.
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
+  

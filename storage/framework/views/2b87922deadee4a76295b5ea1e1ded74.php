@@ -1,7 +1,7 @@
 <?php $__env->startSection('title', $auction->title); ?>
 
 <?php $__env->startSection('content'); ?>
-<div class="container py-4" id="auction-live" data-auction-id="<?php echo e($auction->id); ?>">
+<div class="container py-4"<?php if($auction->isActive()): ?> id="auction-live" data-auction-id="<?php echo e($auction->id); ?>"<?php endif; ?>>
     <?php
         $primaryImg = $auction->primaryImage ?? $auction->images->first();
         $mainImgUrl = $primaryImg ? asset('uploads/' . $primaryImg->path) : asset('uploads/placeholder.jpg');

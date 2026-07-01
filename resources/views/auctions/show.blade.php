@@ -3,7 +3,7 @@
 @section('title', $auction->title)
 
 @section('content')
-<div class="container py-4" id="auction-live" data-auction-id="{{ $auction->id }}">
+<div class="container py-4"@if($auction->isActive()) id="auction-live" data-auction-id="{{ $auction->id }}"@endif>
     @php
         $primaryImg = $auction->primaryImage ?? $auction->images->first();
         $mainImgUrl = $primaryImg ? asset('uploads/' . $primaryImg->path) : asset('uploads/placeholder.jpg');
