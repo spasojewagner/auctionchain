@@ -97,6 +97,7 @@
                 { label: 'Kupi odmah', next: 'buynow' },
                 { label: 'Prodaja predmeta', next: 'selling' },
                 { label: 'Escrow zaštita', next: 'escrow' },
+                { label: 'Ocenjivanje', next: 'ratings' },
                 { label: 'Nalog i balans', next: 'account' },
                 { label: 'Sporovi', next: 'disputes' },
             ]
@@ -147,6 +148,7 @@
             options: [
                 { label: 'Kako da postavim aukciju', next: 'sell_how' },
                 { label: 'AI opis predmeta', next: 'sell_ai' },
+                { label: 'Uređivanje slika', next: 'sell_images' },
                 BACK,
             ]
         },
@@ -158,9 +160,24 @@
             messages: ['Pri kreiranju aukcije klikni dugme „Generiši opis (AI)".', 'Ako si izabrao sliku, AI će je pogledati i opisati predmet; ako nisi, piše opis na osnovu naziva. Tekst uvek možeš sam da doradiš.'],
             options: [{ label: '← Prodaja', next: 'selling' }, BACK]
         },
+        sell_images: {
+            messages: ['Na stranici svoje aukcije klikni „Uredi slike".', 'Tu možeš dodati nove slike, obrisati postojeće ili izabrati koja je glavna (thumbnail).'],
+            options: [{ label: '← Prodaja', next: 'selling' }, BACK]
+        },
         escrow: {
             messages: ['Escrow je sistem zaštite novca za obe strane.', 'Kad licitiraš, iznos ti se zaključava. Ako te nadlicitiraju — vraća se. Ako pobediš — ostaje zaključan dok ne potvrdiš prijem robe, pa tek onda ide prodavcu.', 'Tako su i kupac i prodavac zaštićeni.'],
             options: [{ label: 'Ako roba ne stigne?', next: 'disputes' }, BACK]
+        },
+        ratings: {
+            messages: ['Nakon završene transakcije (kada kupac potvrdi prijem robe), kupac i prodavac mogu da ocene jedan drugog.', 'Na stranici te aukcije se pojavi forma: 1–5 zvezdica + opcioni komentar. Jedna ocena po aukciji — ponovnim slanjem menjaš svoju postojeću.', 'Prosečna ocena prodavca (★ i broj ocena) se vidi pored njegovog imena na svakoj njegovoj aukciji.'],
+            options: [
+                { label: 'Kako se završava transakcija?', next: 'rate_complete' },
+                BACK,
+            ]
+        },
+        rate_complete: {
+            messages: ['Kada pobediš aukciju (ili kupiš preko „Kupi odmah"), na stranici aukcije klikneš „Potvrdi prijem" kad ti roba stigne.', 'Tada novac iz escrow-a ide prodavcu, aukcija dobija status „završena" — i tek tada se otključava ocenjivanje.'],
+            options: [{ label: '← Ocenjivanje', next: 'ratings' }, BACK]
         },
         account: {
             messages: ['Šta te zanima o nalogu?'],

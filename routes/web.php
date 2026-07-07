@@ -15,6 +15,7 @@ use App\Http\Controllers\DisputeController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\NewsletterController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\RatingController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['end.expired.auctions'])->group(function () {
@@ -44,6 +45,9 @@ Route::middleware(['end.expired.auctions'])->group(function () {
         Route::delete('/auctions/{auction}', [AuctionController::class, 'destroy'])->name('auctions.destroy');
         Route::post('/auctions/{auction}/confirm-delivery', [AuctionController::class, 'confirmDelivery'])->name('auctions.confirm');
         Route::post('/auctions/{auction}/buy-now', [AuctionController::class, 'buyNow'])->name('auctions.buynow');
+
+        // Ocenjivanje prodavaca i kupaca
+        Route::post('/auctions/{auction}/rate', [RatingController::class, 'store'])->name('auctions.rate');
 
         // Uređivanje slika aukcije
         Route::get('/auctions/{auction}/edit', [AuctionController::class, 'edit'])->name('auctions.edit');
