@@ -30,3 +30,7 @@ yarn-error.log
 # OS
 .DS_Store
 Thumbs.db
+/storage/framework/cache/*
+/storage/framework/sessions/*
+/storage/framework/views/*
+/storage/logs/*
