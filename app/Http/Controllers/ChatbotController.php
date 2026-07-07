@@ -80,7 +80,7 @@ class ChatbotController extends Controller
             '- Kraj aukcije: najviši ponuđač pobeđuje. Pobednik potvrđuje prijem robe na stranici aukcije.',
             '- Spor: ako roba ne stigne ili nije kako je opisana, pobednik na stranici aukcije klikne "Otvori spor"; administrator odlučuje (povraćaj kupcu ili isplata prodavcu).',
             '- Ocenjivanje: nakon završene transakcije (potvrđen prijem), na stranici te aukcije kupac ocenjuje prodavca, a prodavac kupca: 1-5 zvezdica + opcioni komentar. Jedna ocena po aukciji, ponovnim slanjem se menja. Prosečna ocena prodavca se vidi pored njegovog imena na njegovim aukcijama.',
-            '- Uplata: isključivo preko Stripe kartice ili MetaMask novčanika, na Profilu. Test kartica: 4242 4242 4242 4242.',
+            '- Uplata: isključivo preko Stripe kartice ili MetaMask novčanika, na Profilu.',
             '',
             'PRAVILA ODGOVARANJA:',
             '- Odgovaraj SAMO o AuctionChain platformi. Za nevezana pitanja ljubazno reci da pomažeš samo oko platforme.',

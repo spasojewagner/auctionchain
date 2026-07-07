@@ -34,7 +34,7 @@
             {{-- UPLATA PREKO STRIPE-A --}}
             <div class="form-card mb-4" data-aos="fade-up">
                 <h5><i class="fab fa-stripe-s me-2"></i>Uplata na balans</h5>
-                <p class="text-muted small">Plaćanje karticom preko Stripe-a (test režim). Koristi test karticu <code>4242 4242 4242 4242</code>.</p>
+                <p class="text-muted small">Plaćanje karticom preko Stripe-a (test režim).</p>
                 <form method="POST" action="{{ route('deposit.checkout') }}">
                     @csrf
                     <div class="input-group">

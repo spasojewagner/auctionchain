@@ -30,6 +30,7 @@
                         <textarea name="description" id="auction-description" rows="5"
                                   class="form-control @error('description') is-invalid @enderror" required>{{ old('description') }}</textarea>
                         @error('description') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                        <small class="text-muted">Savet: za AI opis prvo izaberi sliku predmeta — opis će biti znatno precizniji.</small>
                     </div>
 
                     <div class="row">

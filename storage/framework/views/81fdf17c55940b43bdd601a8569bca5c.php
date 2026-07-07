@@ -128,7 +128,7 @@
             ]
         },
         pay_stripe: {
-            messages: ['Uplata karticom ide preko Stripe-a (siguran sistem za plaćanje).', 'Idi na Profil → „Uplata na balans", unesi iznos i plati karticom. Za test koristi karticu 4242 4242 4242 4242, bilo koji budući datum i bilo koji CVC.'],
+            messages: ['Uplata karticom ide preko Stripe-a (siguran sistem za plaćanje).', 'Idi na Profil → „Uplata na balans", unesi iznos i plati karticom.'],
             options: [{ label: '← Plaćanje', next: 'payments' }, BACK]
         },
         pay_metamask: {

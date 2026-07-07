@@ -41,11 +41,7 @@
                     Nemate nalog? <a href="{{ route('register') }}">Registrujte se</a>
                 </p>
 
-                <div class="alert alert-info mt-3 small">
-                    <strong>Demo nalozi:</strong><br>
-                    Admin: admin@auctionchain.test / admin123<br>
-                    Korisnik: marko@test.com / password
-                </div>
+                
             </div>
         </div>
     </div>
