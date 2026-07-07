@@ -17,13 +17,17 @@ Izrada: Marko Spasojević, Pavle Tasić, Marko Mićović.
 ## Glavne funkcije
 - Registracija, prijava, korisnički profil sa virtuelnim balansom (RSD)
 - Kreiranje aukcija sa slikama (1–5), opcionom „Kupi odmah" cenom i trajanjem
+- Uređivanje slika postojeće aukcije (dodavanje, brisanje, izbor glavne slike)
 - Licitiranje uživo (AJAX, cena i ponude se osvežavaju automatski)
 - Escrow logika: sredstva se zaključavaju pri licitiranju, vraćaju pri nadlicitaciji, isplaćuju prodavcu nakon potvrde prijema
 - „Kupi odmah" — momentalna kupovina po fiksnoj ceni
+- **Ocenjivanje prodavaca i kupaca** (dodatni task): nakon završene transakcije kupac i prodavac ocenjuju jedan drugog (1–5 zvezdica + komentar); jedna ocena po aukciji uz mogućnost izmene; prosečna ocena prodavca prikazuje se na njegovim aukcijama
 - Sistem sporova (kupac otvara, administrator rešava)
 - Uplata sredstava preko Stripe-a ili MetaMask-a
 - Email i in-app notifikacije
-- AI generisanje opisa (iz naziva ili sa slike) i AI chatbot pomoćnik
+- AI generisanje opisa aukcije (iz naziva ili analizom slike — vision model)
+- AI chatbot pomoćnik: vođeni meni sa temama (licitiranje, plaćanje, escrow, ocenjivanje...) + slobodna pitanja preko Groq AI
+- Newsletter prijava (footer)
 - Admin panel (kategorije, korisnici, aukcije, sporovi)
 
 ---
@@ -102,18 +106,18 @@ Aplikacija radi i bez ovih ključeva — samo te konkretne funkcije neće biti a
 ### Stripe (uplata karticom)
 1. Napravi nalog na https://dashboard.stripe.com i prebaci na **Test mode**.
 2. Kopiraj ključeve sa https://dashboard.stripe.com/test/apikeys u `.env`:
-   ```
+```
    STRIPE_KEY=pk_test_...
    STRIPE_SECRET=sk_test_...
-   ```
+```
 3. Test kartica: `4242 4242 4242 4242`, bilo koji budući datum, bilo koji CVC.
 
 ### Groq AI (opisi + chatbot)
 1. Besplatan ključ sa https://console.groq.com/keys
 2. U `.env`:
-   ```
+```
    GROQ_API_KEY=gsk_...
-   ```
+```
 
 ### Email (Mailtrap)
 1. Besplatan nalog na https://mailtrap.io → Email Testing → Inbox → Integrations → Laravel.
@@ -126,6 +130,13 @@ php artisan config:clear
 ```
 
 ---
+
+## Ocenjivanje (dodatni task)
+Kada kupac potvrdi prijem robe, aukcija prelazi u status *completed* i na njenoj stranici se
+i kupcu i prodavcu otvara forma za ocenjivanje druge strane (1–5 zvezdica + komentar do 500
+karaktera). U bazi je `UNIQUE(auction_id, rater_id)` pa je moguća tačno jedna ocena po aukciji
+po korisniku (ponovno slanje menja postojeću). Prosečna ocena i broj ocena prodavca
+prikazuju se pored njegovog imena na stranici svake njegove aukcije.
 
 ## Napomene
 - Slike aukcija se čuvaju u `public/uploads/auctions` — folder mora biti upisiv.
