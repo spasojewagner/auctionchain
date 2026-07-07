@@ -45,7 +45,7 @@ Izrada: Marko Spasojević, Pavle Tasić, Marko Mićović.
 
 **1. Kloniraj repozitorijum**
 ```bash
-git clone https://github.com/KORISNICKO_IME/auctionchain.git
+git clone https://github.com/spasojewagner/auctionchain
 cd auctionchain
 ```
 
