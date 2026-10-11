@@ -1,5 +1,7 @@
 # AuctionChain
 
+[![Tests](https://github.com/spasojewagner/auctionchain/actions/workflows/tests.yml/badge.svg)](https://github.com/spasojewagner/auctionchain/actions/workflows/tests.yml)
+
 Onlajn aukciona platforma sa licitiranjem u realnom vremenu i **escrow** zaštitom za kupce i prodavce. Seminarski rad iz predmeta *Internet programiranje*, FTN Čačak.
 
 Izrada: Marko Spasojević, Pavle Tasić, Marko Mićović.
@@ -11,19 +13,20 @@ Izrada: Marko Spasojević, Pavle Tasić, Marko Mićović.
 - **MySQL** + Eloquent ORM
 - **Blade** (SSR) + AJAX za licitiranje u realnom vremenu (polling)
 - **Bootstrap 5**, FontAwesome, AOS (preko CDN-a — nije potreban Node/npm)
-- **Stripe** (uplata karticom, test režim) i **MetaMask** (Web3 novčanik)
+- **Stripe** (uplata karticom, test režim) i **MetaMask** (povezivanje Web3 novčanika uz nalog)
 - **Groq AI** (generisanje opisa aukcije iz teksta/slike + chatbot pomoćnik)
+- **PHPUnit** testovi escrow logike i GitHub Actions
 
 ## Glavne funkcije
 - Registracija, prijava, korisnički profil sa virtuelnim balansom (RSD)
 - Kreiranje aukcija sa slikama (1–5), opcionom „Kupi odmah" cenom i trajanjem
 - Uređivanje slika postojeće aukcije (dodavanje, brisanje, izbor glavne slike)
 - Licitiranje uživo (AJAX, cena i ponude se osvežavaju automatski)
-- Escrow logika: sredstva se zaključavaju pri licitiranju, vraćaju pri nadlicitaciji, isplaćuju prodavcu nakon potvrde prijema
+- Escrow logika: sredstva se zaključavaju pri licitiranju, vraćaju pri nadlicitaciji, isplaćuju prodavcu nakon potvrde prijema (detalji ispod)
 - „Kupi odmah" — momentalna kupovina po fiksnoj ceni
 - **Ocenjivanje prodavaca i kupaca** (dodatni task): nakon završene transakcije kupac i prodavac ocenjuju jedan drugog (1–5 zvezdica + komentar); jedna ocena po aukciji uz mogućnost izmene; prosečna ocena prodavca prikazuje se na njegovim aukcijama
-- Sistem sporova (kupac otvara, administrator rešava)
-- Uplata sredstava preko Stripe-a ili MetaMask-a
+- Sistem sporova (kupac ili prodavac otvara, administrator rešava)
+- Uplata sredstava karticom preko Stripe-a; povezivanje MetaMask novčanika na profilu
 - Email i in-app notifikacije
 - AI generisanje opisa aukcije (iz naziva ili analizom slike — vision model)
 - AI chatbot pomoćnik: vođeni meni sa temama (licitiranje, plaćanje, escrow, ocenjivanje...) + slobodna pitanja preko Groq AI
@@ -94,7 +97,7 @@ Otvori **http://localhost:8000**
 | Korisnik | pavle@test.com | password |
 | Korisnik | micovic@test.com | password |
 
-> Novi nalozi počinju sa balansom 0 — sredstva se uplaćuju preko Stripe-a ili MetaMask-a.
+> Novi nalozi počinju sa balansom 0 — sredstva se uplaćuju karticom preko Stripe-a.
 > Demo nalozi imaju početni balans radi testiranja.
 
 ---
@@ -130,6 +133,36 @@ php artisan config:clear
 ```
 
 ---
+
+## Kako radi escrow
+
+Sav novac prolazi kroz `app/Services/EscrowService.php`. Svaka operacija je jedna transakcija u bazi sa
+zaključavanjem redova (`lockForUpdate`), a svaka promena balansa se upisuje u tabelu `transactions`.
+
+| Događaj | Šta se dešava sa novcem |
+|---|---|
+| Licitiranje | iznos prelazi sa balansa u zaključani balans ponuđača |
+| Nadlicitiranje | prethodnom najvišem ponuđaču se zaključani iznos vraća na balans |
+| „Kupi odmah" | prethodni najviši ponuđač dobija novac nazad, kupcu se zaključava cena, aukcija se završava |
+| Kraj aukcije | novac pobednika ostaje zaključan dok ne potvrdi prijem |
+| Potvrda prijema | zaključani iznos ide prodavcu, aukcija je *completed* |
+| Spor | može se otvoriti samo dok je novac u escrow-u (aukcija *ended*); admin ga rešava isplatom prodavcu ili povraćajem kupcu |
+| Uklanjanje aukcije (admin) | ko god ima zaključan novac u toj aukciji dobija ga nazad |
+| Uplata preko Stripe-a | iznos koji je Stripe zaista naplatio, knjiži se tačno jednom i kad se stranica osveži |
+
+Pravila (minimalna ponuda, sopstvena aukcija, dovoljno sredstava...) vraćaju poruku korisniku; ostale greške se ne prikazuju.
+
+## Testovi
+
+```bash
+composer install
+php vendor/bin/phpunit
+```
+
+Testovi koriste SQLite bazu u memoriji, pa MySQL nije potreban. Pokrivaju licitiranje i nadlicitiranje,
+„Kupi odmah", zatvaranje isteklih aukcija, potvrdu prijema, oba ishoda spora, uklanjanje aukcije sa
+zaključanim novcem i registraciju. Posle svakog scenarija proverava se da ukupna količina novca u sistemu
+nije promenjena. GitHub Actions ih pokreće na svaki push.
 
 ## Ocenjivanje (dodatni task)
 Kada kupac potvrdi prijem robe, aukcija prelazi u status *completed* i na njenoj stranici se

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exceptions\EscrowException;
 use App\Models\Auction;
 use App\Models\Bid;
 use App\Services\EscrowService;
@@ -45,7 +46,7 @@ class BidController extends Controller
                     'locked_balance' => number_format((float) Auth::user()->fresh()->locked_balance, 2),
                 ],
             ]);
-        } catch (\Throwable $e) {
+        } catch (EscrowException $e) {
             return response()->json([
                 'success' => false,
                 'message' => $e->getMessage(),

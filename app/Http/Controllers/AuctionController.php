@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exceptions\EscrowException;
 use App\Models\Auction;
 use App\Models\AuctionImage;
 use App\Models\Category;
@@ -127,7 +128,7 @@ class AuctionController extends Controller
         try {
             $this->escrow->confirmDelivery($auction, Auth::user());
             return back()->with('success', 'Prijem potvrđen. Sredstva su prebačena prodavcu.');
-        } catch (\Throwable $e) {
+        } catch (EscrowException $e) {
             return back()->withErrors(['error' => $e->getMessage()]);
         }
     }
@@ -138,7 +139,7 @@ class AuctionController extends Controller
             $this->escrow->buyNow(Auth::user(), $auction);
             return redirect()->route('auctions.show', $auction)
                 ->with('success', 'Čestitamo! Kupili ste predmet. Iznos je zaključan u escrow-u dok ne potvrdite prijem.');
-        } catch (\Throwable $e) {
+        } catch (EscrowException $e) {
             return back()->withErrors(['error' => $e->getMessage()]);
         }
     }

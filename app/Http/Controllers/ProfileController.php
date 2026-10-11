@@ -3,14 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Auction;
-use App\Services\EscrowService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class ProfileController extends Controller
 {
-    public function __construct(private EscrowService $escrow) {}
-
     public function show()
     {
         $user = Auth::user();
@@ -45,25 +42,6 @@ class ProfileController extends Controller
             ->get();
 
         return view('profile.my-bids', compact('myBids', 'wonAuctions'));
-    }
-
-    /**
-     * Instant (virtuelna) uplata - ostaje kao fallback.
-     * Glavni tok uplate sada ide preko Stripe-a (DepositController).
-     */
-    public function deposit(Request $request)
-    {
-        $data = $request->validate([
-            'amount' => ['required', 'numeric', 'min:100', 'max:1000000'],
-        ]);
-
-        $this->escrow->deposit(
-            Auth::user(),
-            (float) $data['amount'],
-            'Korisnička uplata na balans'
-        );
-
-        return back()->with('success', 'Uplata uspešna! Balans ažuriran.');
     }
 
     /**

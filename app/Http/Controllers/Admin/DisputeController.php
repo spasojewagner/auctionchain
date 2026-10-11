@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Exceptions\EscrowException;
 use App\Http\Controllers\Controller;
 use App\Models\Dispute;
 use App\Models\Notification;
@@ -41,40 +42,37 @@ class DisputeController extends Controller
             return back()->withErrors(['error' => 'Spor je već rešen.']);
         }
 
-        DB::transaction(function () use ($dispute, $data) {
-            $auction = $dispute->auction;
+        try {
+            DB::transaction(function () use ($dispute, $data) {
+                $auction = $dispute->auction;
 
-            if ($data['decision'] === 'buyer') {
-                // Vrati novac kupcu
-                $this->escrow->refundBuyer($auction, 'Spor #' . $dispute->id . ' rešen u korist kupca');
-                $dispute->status = 'resolved_for_buyer';
-                $auction->status = 'cancelled';
-            } else {
-                // Isplata prodavcu
-                $this->escrow->confirmDelivery($auction, $auction->winner);
-                $dispute->status = 'resolved_for_seller';
-                // confirmDelivery vec postavlja status na 'completed'
-            }
+                if ($data['decision'] === 'buyer') {
+                    // Novac se vraća kupcu, aukcija se otkazuje
+                    $this->escrow->resolveForBuyer($auction, 'Spor #' . $dispute->id . ' rešen u korist kupca');
+                    $dispute->status = 'resolved_for_buyer';
+                } else {
+                    // Novac iz escrow-a ide prodavcu, aukcija je završena
+                    $this->escrow->resolveForSeller($auction);
+                    $dispute->status = 'resolved_for_seller';
+                }
 
-            $dispute->resolution = $data['resolution'];
-            $dispute->resolved_by = Auth::id();
-            $dispute->save();
-            $auction->save();
+                $dispute->resolution = $data['resolution'];
+                $dispute->resolved_by = Auth::id();
+                $dispute->save();
 
-            // Notifikuj obe strane
-            Notification::create([
-                'user_id' => $auction->seller_id,
-                'auction_id' => $auction->id,
-                'type' => 'dispute_resolved',
-                'message' => "Spor za aukciju '{$auction->title}' je rešen.",
-            ]);
-            Notification::create([
-                'user_id' => $auction->winner_id,
-                'auction_id' => $auction->id,
-                'type' => 'dispute_resolved',
-                'message' => "Spor za aukciju '{$auction->title}' je rešen.",
-            ]);
-        });
+                // Notifikuj obe strane
+                foreach ([$auction->seller_id, $auction->winner_id] as $userId) {
+                    Notification::create([
+                        'user_id' => $userId,
+                        'auction_id' => $auction->id,
+                        'type' => 'dispute_resolved',
+                        'message' => "Spor za aukciju '{$auction->title}' je rešen.",
+                    ]);
+                }
+            });
+        } catch (EscrowException $e) {
+            return back()->withErrors(['error' => $e->getMessage()]);
+        }
 
         return redirect()->route('admin.disputes.index')->with('success', 'Spor uspešno rešen.');
     }

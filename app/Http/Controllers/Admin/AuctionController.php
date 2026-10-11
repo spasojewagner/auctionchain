@@ -4,10 +4,13 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Auction;
+use App\Services\EscrowService;
 use Illuminate\Http\Request;
 
 class AuctionController extends Controller
 {
+    public function __construct(private EscrowService $escrow) {}
+
     public function index(Request $request)
     {
         $query = Auction::with(['seller', 'category'])->withCount('bids');
@@ -27,6 +30,9 @@ class AuctionController extends Controller
 
     public function destroy(Auction $auction)
     {
+        // Return any money locked in this auction before it disappears.
+        $this->escrow->cancelAuction($auction, 'Aukcija #' . $auction->id . ' uklonjena od strane administratora');
+
         // Obrisi slike
         foreach ($auction->images as $image) {
             $path = public_path('uploads/' . $image->path);

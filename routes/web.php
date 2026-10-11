@@ -70,7 +70,6 @@ Route::middleware(['end.expired.auctions'])->group(function () {
         Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
         Route::get('/profile/auctions', [ProfileController::class, 'myAuctions'])->name('profile.auctions');
         Route::get('/profile/bids', [ProfileController::class, 'myBids'])->name('profile.bids');
-        Route::post('/profile/deposit', [ProfileController::class, 'deposit'])->name('profile.deposit');
         Route::post('/profile/wallet', [ProfileController::class, 'saveWallet'])->name('profile.wallet');
         Route::get('/profile/notifications', [ProfileController::class, 'notifications'])->name('profile.notifications');
         Route::get('/profile/notifications/count', [ProfileController::class, 'notificationsCount'])->name('profile.notifications.count');

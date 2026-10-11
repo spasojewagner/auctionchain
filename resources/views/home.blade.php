@@ -164,7 +164,7 @@
             <div class="col-md-4" data-aos="zoom-in" data-aos-delay="0">
                 <div class="hiw-icon mb-3" style="color: #6366f1;"><i class="fas fa-user-plus"></i></div>
                 <h5>1. Registruj se i uplati</h5>
-                <p class="text-muted">Kreiraj nalog i uplati sredstva preko Stripe-a ili MetaMask-a.</p>
+                <p class="text-muted">Kreiraj nalog i uplati sredstva karticom preko Stripe-a.</p>
             </div>
             <div class="col-md-4" data-aos="zoom-in" data-aos-delay="120">
                 <div class="hiw-icon mb-3" style="color: #10b981;"><i class="fas fa-gavel"></i></div>

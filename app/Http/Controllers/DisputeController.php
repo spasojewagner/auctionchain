@@ -7,6 +7,7 @@ use App\Models\Dispute;
 use App\Models\Notification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class DisputeController extends Controller
 {
@@ -37,15 +38,31 @@ class DisputeController extends Controller
             'reason' => ['required', 'string', 'min:20', 'max:2000'],
         ]);
 
-        Dispute::create([
-            'auction_id' => $auction->id,
-            'opened_by' => Auth::id(),
-            'reason' => $data['reason'],
-            'status' => 'open',
-        ]);
+        // A dispute is only possible while the money is still in escrow: the auction has ended
+        // and the buyer hasn't confirmed delivery yet. Checked here as well as in create(),
+        // because the form can be posted directly.
+        $opened = DB::transaction(function () use ($auction, $data) {
+            $auction = Auction::lockForUpdate()->findOrFail($auction->id);
+            if ($auction->status !== 'ended' || $auction->dispute()->exists()) {
+                return false;
+            }
 
-        $auction->status = 'disputed';
-        $auction->save();
+            Dispute::create([
+                'auction_id' => $auction->id,
+                'opened_by' => Auth::id(),
+                'reason' => $data['reason'],
+                'status' => 'open',
+            ]);
+
+            $auction->status = 'disputed';
+            $auction->save();
+
+            return true;
+        });
+
+        if (!$opened) {
+            return back()->withErrors(['error' => 'Spor se može otvoriti samo za završene aukcije koje nisu finalizovane.']);
+        }
 
         // Notifikuj drugog ucesnika u aukciji
         $otherUserId = (Auth::id() === $auction->winner_id) ? $auction->seller_id : $auction->winner_id;

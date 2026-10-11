@@ -2,14 +2,13 @@
 
 namespace App\Services;
 
+use App\Exceptions\EscrowException;
 use App\Models\Auction;
 use App\Models\Bid;
 use App\Models\Notification;
 use App\Models\Transaction;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
-use InvalidArgumentException;
-use RuntimeException;
 
 /**
  * EscrowService - centralna logika za rad sa novcem u sistemu.
@@ -29,15 +28,15 @@ class EscrowService
             $bidder = User::lockForUpdate()->findOrFail($bidder->id);
 
             if (!$auction->isActive()) {
-                throw new RuntimeException('Aukcija nije aktivna.');
+                throw new EscrowException('Aukcija nije aktivna.');
             }
 
             if ($auction->seller_id === $bidder->id) {
-                throw new InvalidArgumentException('Ne možete licitirati na sopstvenu aukciju.');
+                throw new EscrowException('Ne možete licitirati na sopstvenu aukciju.');
             }
 
             if ($bidder->is_suspended) {
-                throw new RuntimeException('Vaš nalog je suspendovan.');
+                throw new EscrowException('Vaš nalog je suspendovan.');
             }
 
             $currentHighest = (float) $auction->current_price;
@@ -46,16 +45,16 @@ class EscrowService
             $minimumBid = $hasBids ? $currentHighest + 0.01 : (float) $auction->starting_price;
 
             if ($amount < $minimumBid) {
-                throw new InvalidArgumentException("Ponuda mora biti najmanje " . number_format($minimumBid, 2) . " RSD.");
+                throw new EscrowException("Ponuda mora biti najmanje " . number_format($minimumBid, 2) . " RSD.");
             }
 
             $previousHighest = $auction->bids()->orderByDesc('amount')->first();
             if ($previousHighest && $previousHighest->user_id === $bidder->id) {
-                throw new InvalidArgumentException('Već imate najvišu ponudu na ovoj aukciji.');
+                throw new EscrowException('Već imate najvišu ponudu na ovoj aukciji.');
             }
 
             if ((float) $bidder->balance < $amount) {
-                throw new RuntimeException('Nemate dovoljno sredstava na balansu. Potrebno: ' . number_format($amount, 2) . ' RSD, dostupno: ' . number_format($bidder->balance, 2) . ' RSD.');
+                throw new EscrowException('Nemate dovoljno sredstava na balansu. Potrebno: ' . number_format($amount, 2) . ' RSD, dostupno: ' . number_format($bidder->balance, 2) . ' RSD.');
             }
 
             if ($previousHighest) {
@@ -113,26 +112,26 @@ class EscrowService
             $buyer = User::lockForUpdate()->findOrFail($buyer->id);
 
             if (!$auction->isActive()) {
-                throw new RuntimeException('Aukcija nije aktivna.');
+                throw new EscrowException('Aukcija nije aktivna.');
             }
             if (is_null($auction->buy_now_price)) {
-                throw new RuntimeException('Ova aukcija nema "Kupi odmah" cenu.');
+                throw new EscrowException('Ova aukcija nema "Kupi odmah" cenu.');
             }
             if ($auction->seller_id === $buyer->id) {
-                throw new InvalidArgumentException('Ne možete kupiti sopstvenu aukciju.');
+                throw new EscrowException('Ne možete kupiti sopstvenu aukciju.');
             }
             if ($buyer->is_suspended) {
-                throw new RuntimeException('Vaš nalog je suspendovan.');
+                throw new EscrowException('Vaš nalog je suspendovan.');
             }
 
             $price = (float) $auction->buy_now_price;
 
             if ((float) $auction->current_price >= $price && $auction->bids()->exists()) {
-                throw new RuntimeException('Trenutna ponuda je već dostigla "Kupi odmah" cenu.');
+                throw new EscrowException('Trenutna ponuda je već dostigla "Kupi odmah" cenu.');
             }
 
             if ((float) $buyer->balance < $price) {
-                throw new RuntimeException('Nemate dovoljno sredstava. Potrebno: ' . number_format($price, 2) . ' RSD, dostupno: ' . number_format($buyer->balance, 2) . ' RSD.');
+                throw new EscrowException('Nemate dovoljno sredstava. Potrebno: ' . number_format($price, 2) . ' RSD, dostupno: ' . number_format($buyer->balance, 2) . ' RSD.');
             }
 
             // Vrati prethodnom najvišem ponuđaču zaključana sredstva
@@ -234,86 +233,151 @@ class EscrowService
         });
     }
 
+    /**
+     * The winner confirms that the item arrived: the escrowed amount goes to the seller.
+     */
     public function confirmDelivery(Auction $auction, User $buyer): void
     {
         DB::transaction(function () use ($auction, $buyer) {
             $auction = Auction::lockForUpdate()->findOrFail($auction->id);
 
             if ($auction->status !== 'ended') {
-                throw new RuntimeException('Aukcija nije u stanju da se potvrdi prijem.');
+                throw new EscrowException('Aukcija nije u stanju da se potvrdi prijem.');
             }
 
             if ($auction->winner_id !== $buyer->id) {
-                throw new RuntimeException('Samo pobednik aukcije može potvrditi prijem.');
+                throw new EscrowException('Samo pobednik aukcije može potvrditi prijem.');
             }
 
-            $amount = (float) $auction->current_price;
-
-            $buyer = User::lockForUpdate()->findOrFail($buyer->id);
-            $buyer->locked_balance = (float) $buyer->locked_balance - $amount;
-            $buyer->save();
-
-            Transaction::create([
-                'user_id' => $buyer->id,
-                'auction_id' => $auction->id,
-                'type' => 'payout',
-                'amount' => -$amount,
-                'balance_after' => $buyer->balance,
-                'locked_balance_after' => $buyer->locked_balance,
-                'note' => 'Isplata prodavcu za aukciju #' . $auction->id,
-            ]);
-
-            $seller = User::lockForUpdate()->findOrFail($auction->seller_id);
-            $seller->balance = (float) $seller->balance + $amount;
-            $seller->save();
-
-            Transaction::create([
-                'user_id' => $seller->id,
-                'auction_id' => $auction->id,
-                'type' => 'payout',
-                'amount' => $amount,
-                'balance_after' => $seller->balance,
-                'locked_balance_after' => $seller->locked_balance,
-                'note' => 'Isplata za prodatu aukciju #' . $auction->id,
-            ]);
-
-            $auction->status = 'completed';
-            $auction->save();
+            $this->releaseToSeller($auction);
         });
     }
 
-    public function refundBuyer(Auction $auction, string $note): void
+    /**
+     * An admin closes a dispute in the seller's favour: the escrowed amount goes to the seller.
+     */
+    public function resolveForSeller(Auction $auction): void
+    {
+        DB::transaction(function () use ($auction) {
+            $auction = Auction::lockForUpdate()->findOrFail($auction->id);
+
+            if ($auction->status !== 'disputed') {
+                throw new EscrowException('Aukcija nije u sporu.');
+            }
+
+            $this->releaseToSeller($auction);
+        });
+    }
+
+    /**
+     * An admin closes a dispute in the buyer's favour: the buyer gets the money back.
+     */
+    public function resolveForBuyer(Auction $auction, string $note): void
     {
         DB::transaction(function () use ($auction, $note) {
             $auction = Auction::lockForUpdate()->findOrFail($auction->id);
 
-            if (!$auction->winner_id) {
-                throw new RuntimeException('Aukcija nema pobednika za refund.');
+            if ($auction->status !== 'disputed') {
+                throw new EscrowException('Aukcija nije u sporu.');
             }
 
-            $amount = (float) $auction->current_price;
-            $buyer = User::lockForUpdate()->findOrFail($auction->winner_id);
-
-            $buyer->locked_balance = (float) $buyer->locked_balance - $amount;
-            $buyer->balance = (float) $buyer->balance + $amount;
-            $buyer->save();
-
-            Transaction::create([
-                'user_id' => $buyer->id,
-                'auction_id' => $auction->id,
-                'type' => 'refund',
-                'amount' => $amount,
-                'balance_after' => $buyer->balance,
-                'locked_balance_after' => $buyer->locked_balance,
-                'note' => $note,
-            ]);
+            $this->refundBuyer($auction, $note);
+            $auction->status = 'cancelled';
+            $auction->save();
         });
+    }
+
+    /**
+     * Takes an auction off the market (admin). Whoever has money locked in it gets it back first,
+     * so deleting an auction can never leave funds locked forever.
+     */
+    public function cancelAuction(Auction $auction, string $note): void
+    {
+        DB::transaction(function () use ($auction, $note) {
+            $auction = Auction::lockForUpdate()->findOrFail($auction->id);
+
+            if ($auction->status === 'active') {
+                $highest = $auction->bids()->orderByDesc('amount')->first();
+                if ($highest) {
+                    $this->unlockFundsForUser($highest->user_id, (float) $highest->amount, $auction->id, $note);
+                }
+            } elseif (in_array($auction->status, ['ended', 'disputed'], true) && $auction->winner_id) {
+                $this->refundBuyer($auction, $note);
+            }
+            // 'completed': the seller has been paid, nothing is locked. 'cancelled': nothing to do.
+
+            if ($auction->status !== 'completed') {
+                $auction->status = 'cancelled';
+                $auction->save();
+            }
+        });
+    }
+
+    private function releaseToSeller(Auction $auction): void
+    {
+        $amount = (float) $auction->current_price;
+
+        $buyer = User::lockForUpdate()->findOrFail($auction->winner_id);
+        $buyer->locked_balance = (float) $buyer->locked_balance - $amount;
+        $buyer->save();
+
+        Transaction::create([
+            'user_id' => $buyer->id,
+            'auction_id' => $auction->id,
+            'type' => 'payout',
+            'amount' => -$amount,
+            'balance_after' => $buyer->balance,
+            'locked_balance_after' => $buyer->locked_balance,
+            'note' => 'Isplata prodavcu za aukciju #' . $auction->id,
+        ]);
+
+        $seller = User::lockForUpdate()->findOrFail($auction->seller_id);
+        $seller->balance = (float) $seller->balance + $amount;
+        $seller->save();
+
+        Transaction::create([
+            'user_id' => $seller->id,
+            'auction_id' => $auction->id,
+            'type' => 'payout',
+            'amount' => $amount,
+            'balance_after' => $seller->balance,
+            'locked_balance_after' => $seller->locked_balance,
+            'note' => 'Isplata za prodatu aukciju #' . $auction->id,
+        ]);
+
+        $auction->status = 'completed';
+        $auction->save();
+    }
+
+    /** Gives the winner's escrowed amount back. Always called inside a transaction that holds the auction lock. */
+    private function refundBuyer(Auction $auction, string $note): void
+    {
+        if (!$auction->winner_id) {
+            throw new EscrowException('Aukcija nema pobednika za refund.');
+        }
+
+        $amount = (float) $auction->current_price;
+        $buyer = User::lockForUpdate()->findOrFail($auction->winner_id);
+
+        $buyer->locked_balance = (float) $buyer->locked_balance - $amount;
+        $buyer->balance = (float) $buyer->balance + $amount;
+        $buyer->save();
+
+        Transaction::create([
+            'user_id' => $buyer->id,
+            'auction_id' => $auction->id,
+            'type' => 'refund',
+            'amount' => $amount,
+            'balance_after' => $buyer->balance,
+            'locked_balance_after' => $buyer->locked_balance,
+            'note' => $note,
+        ]);
     }
 
     public function deposit(User $user, float $amount, string $note = 'Uplata na balans'): Transaction
     {
         if ($amount <= 0) {
-            throw new InvalidArgumentException('Iznos mora biti pozitivan.');
+            throw new EscrowException('Iznos mora biti pozitivan.');
         }
 
         return DB::transaction(function () use ($user, $amount, $note) {
@@ -329,6 +393,43 @@ class EscrowService
                 'balance_after' => $user->balance,
                 'locked_balance_after' => $user->locked_balance,
                 'note' => $note,
+            ]);
+        });
+    }
+
+    /**
+     * Books a payment only once, even if the confirmation arrives twice at the same time
+     * (a refresh of the payment's success page, for example). The user's row is locked first,
+     * so two requests for the same payment run one after the other and the second sees the first.
+     */
+    public function depositOnce(User $user, float $amount, string $reference, string $note): ?Transaction
+    {
+        if ($amount <= 0) {
+            throw new EscrowException('Iznos mora biti pozitivan.');
+        }
+
+        return DB::transaction(function () use ($user, $amount, $reference, $note) {
+            $user = User::lockForUpdate()->findOrFail($user->id);
+
+            $alreadyBooked = Transaction::where('user_id', $user->id)
+                ->where('type', 'deposit')
+                ->where('note', 'like', '%' . $reference . '%')
+                ->exists();
+            if ($alreadyBooked) {
+                return null;
+            }
+
+            $user->balance = (float) $user->balance + $amount;
+            $user->save();
+
+            return Transaction::create([
+                'user_id' => $user->id,
+                'auction_id' => null,
+                'type' => 'deposit',
+                'amount' => $amount,
+                'balance_after' => $user->balance,
+                'locked_balance_after' => $user->locked_balance,
+                'note' => $note . ' (' . $reference . ')',
             ]);
         });
     }

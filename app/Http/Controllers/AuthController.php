@@ -52,12 +52,12 @@ class AuthController extends Controller
             'email' => $data['email'],
             'password' => Hash::make($data['password']),
             'role' => 'user',
-            'balance' => 0, // Pocetni balans za seminarski - 10.000 RSD virtuelnog novca
+            'balance' => 0, // balans se puni uplatom preko Stripe-a (test mode)
             'locked_balance' => 0,
         ]);
 
         Auth::login($user);
-        return redirect()->route('home')->with('success', 'Uspešno ste registrovani! Dobili ste 10.000 RSD virtuelnog balansa.');
+        return redirect()->route('home')->with('success', 'Uspešno ste registrovani! Balans možete dopuniti na stranici profila.');
     }
 
     public function logout(Request $request)

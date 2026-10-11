@@ -189,7 +189,7 @@
             ]
         },
         acc_register: {
-            messages: ['Klikni „Registracija" i unesi ime, email i lozinku.', 'Novi nalozi počinju sa balansom 0 — sredstva uplaćuješ preko Stripe-a ili MetaMask-a.'],
+            messages: ['Klikni „Registracija" i unesi ime, email i lozinku.', 'Novi nalozi počinju sa balansom 0 — sredstva uplaćuješ karticom preko Stripe-a.'],
             options: [{ label: '← Nalog', next: 'account' }, BACK]
         },
         acc_balance: {

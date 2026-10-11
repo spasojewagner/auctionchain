@@ -15,6 +15,8 @@ class Bid extends Model
     protected function casts(): array
     {
         return [
+            'auction_id' => 'integer',
+            'user_id' => 'integer',
             'amount' => 'decimal:2',
         ];
     }

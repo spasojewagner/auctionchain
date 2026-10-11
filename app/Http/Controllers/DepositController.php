@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Transaction;
 use App\Services\EscrowService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -91,15 +90,16 @@ class DepositController extends Controller
             return redirect()->route('profile.show')->withErrors(['error' => 'Plaćanje ne pripada ovom nalogu.']);
         }
 
-        // Spreči dvostruko knjiženje (npr. refresh stranice)
-        $already = Transaction::where('note', 'like', '%' . $sessionId . '%')->exists();
-        if ($already) {
-            return redirect()->route('profile.show')->with('success', 'Uplata je već proknjižena.');
+        // Iznos uzimamo od Stripe-a (ono što je zaista naplaćeno), ne iz metapodataka.
+        $amount = ((int) ($session->amount_total ?? 0)) / 100;
+        if ($amount <= 0) {
+            return redirect()->route('profile.show')->withErrors(['error' => 'Plaćanje nije potvrđeno.']);
         }
 
-        $amount = (float) ($session->metadata->amount ?? 0);
-        if ($amount > 0) {
-            $this->escrow->deposit(Auth::user(), $amount, 'Stripe uplata (' . $sessionId . ')');
+        // depositOnce knjiži uplatu samo jednom, i kad dva zahteva stignu istovremeno (npr. refresh stranice).
+        $booked = $this->escrow->depositOnce(Auth::user(), $amount, $sessionId, 'Stripe uplata');
+        if (!$booked) {
+            return redirect()->route('profile.show')->with('success', 'Uplata je već proknjižena.');
         }
 
         return redirect()->route('profile.show')->with('success', 'Uplata uspešna! Balans je ažuriran.');

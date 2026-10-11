@@ -30,6 +30,9 @@ class Auction extends Model
     protected function casts(): array
     {
         return [
+            'seller_id' => 'integer',
+            'winner_id' => 'integer',
+            'category_id' => 'integer',
             'starts_at' => 'datetime',
             'ends_at' => 'datetime',
             'starting_price' => 'decimal:2',
